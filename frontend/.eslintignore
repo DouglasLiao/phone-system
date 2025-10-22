@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+*.min.js
+public/
+.env*
+next.config.js
+tailwind.config.js
+postcss.config.js
+jest.config.js

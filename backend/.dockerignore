@@ -1,0 +1,28 @@
+# Docker ignore file for backend
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+README.md
+.nyc_output
+coverage
+.nyc_output
+test-api.js
+tests/
+.vscode/
+*.log
+
+# Development files
+jest.config.js
+.eslintrc.js
+nodemon.json
+
+# Environment files (will be copied separately)
+.env.local
+.env.production
+
+# Build artifacts
+dist/
+build/

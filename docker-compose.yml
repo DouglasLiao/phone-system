@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # Fake API Gateway Service
+  fake-api:
+    build:
+      context: ./fake-api-gateway
+      dockerfile: Dockerfile
+    container_name: fake-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    networks:
+      - network
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: phone-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - CORS_ORIGIN=http://localhost:3000
+      - CUSTOM_API_ENDPOINT=http://fake-api:3001
+      - CUSTOM_API_KEY=0gAqk7GJsr6KOz2lQRzWM1P2lwbca5ca5U4wGmWy
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http = require('http'); const options = { hostname: 'localhost', port: 8080, path: '/health', timeout: 2000 }; const req = http.request(options, (res) => { if (res.statusCode === 200) process.exit(0); else process.exit(1); }); req.on('error', () => process.exit(1)); req.on('timeout', () => process.exit(1)); req.end();"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - fake-api
+    networks:
+      - network
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: phone-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge
